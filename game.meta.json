@@ -1,0 +1,14 @@
+{
+  "id": "01-narutbae",
+  "order": 1,
+  "subject": "공통국어1",
+  "unit": "1-(1) 서정 갈래의 이해",
+  "work": "한용운, 「나룻배와 행인」",
+  "title": "낡아가는 배: 나루터의 시간",
+  "subtitle": "흙발을 안고 여울을 건너며, 날마다 낡아가는 헌신의 서정을 체험하는 2.5D 나루터 디오라마",
+  "playtimeMinutes": 20,
+  "genre": "2.5D 서정 체험·관찰 퍼즐",
+  "entry": "./games/01-narutbae/index.html",
+  "thumbnail": "./games/01-narutbae/assets/thumbnail.webp",
+  "status": "ready"
+}
