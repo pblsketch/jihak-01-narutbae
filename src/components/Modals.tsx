@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, Lock } from 'lucide-react';
 import { OBSERVATION_NOTES, ObservationNote, POEM_STANZAS } from '../data/poemData';
+import { NarrationButton } from './NarrationButton';
 
 interface PoemModalProps {
   open: boolean;
@@ -9,6 +10,7 @@ interface PoemModalProps {
 
 export const PoemModal: React.FC<PoemModalProps> = ({ open, onClose }) => {
   if (!open) return null;
+  const fullPoemText = POEM_STANZAS.map((s) => s.lines.join(' ')).join('. ');
   return (
     <div className="modal-backdrop" role="dialog" aria-label="나룻배와 행인 원문 전편" onClick={onClose}>
       <div className="hanji-modal" onClick={(e) => e.stopPropagation()}>
@@ -24,7 +26,10 @@ export const PoemModal: React.FC<PoemModalProps> = ({ open, onClose }) => {
             <X size={20} />
           </button>
         </div>
-        <p className="poem-source-note">『님의 침묵』 (1926) 수록 · 교과서 원문 문장부호 그대로 수록</p>
+        <div className="poem-modal-bar">
+          <p className="poem-source-note">『님의 침묵』 (1926) 수록 · 교과서 원문 문장부호 그대로 수록</p>
+          <NarrationButton audioKey="full-poem" text={fullPoemText} label="전편 낭송" />
+        </div>
 
         <div className="poem-full-body">
           {POEM_STANZAS.map((stanza) => (

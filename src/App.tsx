@@ -10,6 +10,7 @@ import { MetaphorCardEditor } from './components/MetaphorCardEditor';
 import { ResultDebriefView } from './components/ResultDebriefView';
 import { TeacherDrawer } from './components/TeacherDrawer';
 import { ObservationModal, PoemModal } from './components/Modals';
+import { NarrationButton } from './components/NarrationButton';
 import { OBSERVATION_NOTES, ObservationNote, POEM_STANZAS } from './data/poemData';
 import { loadProgress, resetProgress, saveProgress } from './storage/progressStorage';
 import { soundEngine } from './audio/soundEngine';
@@ -85,6 +86,7 @@ export const App: React.FC = () => {
   }, []);
 
   const goScene = useCallback((next: SceneId) => {
+    soundEngine.stopNarration();
     setTonePreview(null);
     setIsHolding(false);
     setBoatTilt(0);
@@ -229,6 +231,10 @@ export const App: React.FC = () => {
     activeLens,
     boatTilt,
   ]);
+
+  useEffect(() => {
+    soundEngine.setAtmosphere(visualState.scene, visualState.weather);
+  }, [visualState.scene, visualState.weather]);
 
   const hasSavedProgress =
     progress.currentScene !== 'title' || progress.grainLevel > 0 || progress.stanzaCompleted.stanza1;
@@ -407,7 +413,7 @@ export const App: React.FC = () => {
                   <span className="seal-mini is-original">原</span>
                   <span>제1연 · 은유 설정</span>
                 </div>
-                <span className="folio-step-note">시범 단계</span>
+                <NarrationButton audioKey="stanza1" text={POEM_STANZAS[0].lines.join(' ')} />
               </div>
 
               <div className="poem-verse">
@@ -573,6 +579,7 @@ export const App: React.FC = () => {
                     <span className="seal-mini is-original">原</span>
                     <span>제2연 해금 완료</span>
                   </div>
+                  <NarrationButton audioKey="stanza2" text={POEM_STANZAS[1].lines.join(' ')} />
                 </div>
                 <div className="poem-verse">
                   {POEM_STANZAS[1].lines.map((line) => (
@@ -677,6 +684,7 @@ export const App: React.FC = () => {
                     <span className="seal-mini is-original">原</span>
                     <span>제3연 해금 완료</span>
                   </div>
+                  <NarrationButton audioKey="stanza3" text={POEM_STANZAS[2].lines.join(' ')} />
                 </div>
                 <div className="poem-verse">
                   {POEM_STANZAS[2].lines.map((line) => (
@@ -773,6 +781,7 @@ export const App: React.FC = () => {
                     <span className="seal-mini is-original">原</span>
                     <span>제4연 해금 · 헌신의 결 4/4 완성</span>
                   </div>
+                  <NarrationButton audioKey="stanza4" text={POEM_STANZAS[3].lines.join(' ')} />
                 </div>
                 <div className="poem-verse">
                   {POEM_STANZAS[3].lines.map((line) => (
@@ -807,7 +816,11 @@ export const App: React.FC = () => {
                   <span className="seal-mini is-original">原</span>
                   <span>제5연 · 수미상관 복원</span>
                 </div>
-                <span className="folio-step-note is-indep">기억 인출</span>
+                {s5Done ? (
+                  <NarrationButton audioKey="stanza5" text={POEM_STANZAS[4].lines.join(' ')} />
+                ) : (
+                  <span className="folio-step-note is-indep">기억 인출</span>
+                )}
               </div>
 
               <p className="folio-guide">
