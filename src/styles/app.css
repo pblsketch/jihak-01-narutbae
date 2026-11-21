@@ -1470,7 +1470,7 @@ input:focus-visible {
    결과 화면 & 수업 디브리핑
    ========================================================= */
 .result-wrapper {
-  width: min(1040px, 100%);
+  width: min(1080px, 100%);
   margin: auto;
   padding-bottom: 24px;
 }
@@ -1480,6 +1480,411 @@ input:focus-visible {
   grid-template-columns: minmax(290px, 410px) 1fr;
   gap: 18px;
   align-items: start;
+}
+
+.result-right-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* =========================================================
+   감각적 피드백 (수묵 금빛 파문 · 금박 입자 · 시어의 울림 배지)
+   및 영광의 보상 (전통 낙관 실시간 획득 토스트)
+   ========================================================= */
+.resonance-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.resonance-burst {
+  position: fixed;
+  left: 34%;
+  top: 44%;
+  transform: translate(-50%, -50%);
+  display: grid;
+  place-items: center;
+}
+
+.gold-ripple {
+  position: absolute;
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(226, 185, 110, 0.85);
+  box-shadow: 0 0 18px rgba(226, 185, 110, 0.35);
+  animation: ink-gold-ripple 1.55s cubic-bezier(0.16, 0.84, 0.44, 1) forwards;
+}
+
+.resonance-burst.tone-seal .gold-ripple {
+  border-color: rgba(196, 92, 74, 0.82);
+}
+
+.resonance-burst.tone-jade .gold-ripple {
+  border-color: rgba(112, 186, 178, 0.85);
+}
+
+.gold-ripple.r2 {
+  animation-delay: 140ms;
+}
+
+.gold-ripple.r3 {
+  animation-delay: 280ms;
+}
+
+@keyframes ink-gold-ripple {
+  0% {
+    transform: scale(0.45);
+    opacity: 0.92;
+  }
+  100% {
+    transform: scale(3.6);
+    opacity: 0;
+  }
+}
+
+.gold-motes {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
+.gold-mote {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff3cf 0%, #dca852 65%, rgba(220, 168, 82, 0) 100%);
+  animation: mote-bloom 1.25s ease-out var(--delay, 0ms) forwards;
+}
+
+@keyframes mote-bloom {
+  0% {
+    transform: rotate(var(--angle)) translateX(8px) scale(0.5);
+    opacity: 0.95;
+  }
+  100% {
+    transform: rotate(var(--angle)) translateX(var(--dist)) scale(1.15);
+    opacity: 0;
+  }
+}
+
+.resonance-floater {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: rgba(244, 238, 226, 0.95);
+  border: 1.5px solid rgba(207, 163, 85, 0.78);
+  outline: 1px solid rgba(28, 33, 30, 0.16);
+  outline-offset: -4px;
+  box-shadow: 0 12px 30px rgba(18, 24, 22, 0.28);
+  animation: floater-rise 2.15s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.resonance-floater-mark {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  font-family: var(--serif-h);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--seal);
+  border: 1.5px solid var(--seal);
+  background: var(--seal-soft);
+}
+
+.resonance-floater-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.resonance-floater-text strong {
+  font-family: var(--serif-h);
+  font-size: 14px;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.resonance-floater-text small {
+  font-family: var(--serif);
+  font-size: 12px;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+.resonance-chain-mark {
+  padding: 2px 7px;
+  border-top: 1px solid rgba(207, 163, 85, 0.7);
+  border-bottom: 1px solid rgba(207, 163, 85, 0.7);
+  font-family: var(--serif-h);
+  font-size: 12px;
+  font-weight: 700;
+  color: #8c621d;
+  white-space: nowrap;
+}
+
+@keyframes floater-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(18px) scale(0.96);
+  }
+  16% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  82% {
+    opacity: 1;
+    transform: translateY(-10px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-22px) scale(0.98);
+  }
+}
+
+/* 전통 감상 낙관 획득 실시간 토스트 */
+.seal-achievement-toast {
+  position: fixed;
+  top: calc(70px + env(safe-area-inset-top, 0px));
+  right: 24px;
+  z-index: 62;
+  width: min(340px, calc(100vw - 24px));
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 13px 16px;
+  background: rgba(246, 240, 229, 0.97);
+  border: 1.5px solid rgba(164, 50, 40, 0.65);
+  outline: 1px solid rgba(28, 33, 30, 0.16);
+  outline-offset: -5px;
+  box-shadow: 0 16px 38px rgba(16, 22, 20, 0.34);
+  animation: seal-toast-in 0.38s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.seal-toast-stamp {
+  flex: 0 0 auto;
+  width: 48px;
+  height: 48px;
+  border: 2.5px solid var(--seal);
+  background: rgba(164, 50, 40, 0.08);
+  color: var(--seal);
+  display: grid;
+  place-items: center;
+  font-family: var(--serif-h);
+  font-size: 17px;
+  font-weight: 700;
+  transform: rotate(-6deg);
+}
+
+.seal-toast-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.seal-toast-kicker {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--seal);
+  letter-spacing: 0.04em;
+}
+
+.seal-toast-body strong {
+  font-family: var(--serif-h);
+  font-size: 15.5px;
+  color: var(--ink);
+}
+
+.seal-toast-body p {
+  margin: 0;
+  font-size: 12px;
+  color: var(--ink-soft);
+  line-height: 1.45;
+}
+
+@keyframes seal-toast-in {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* =========================================================
+   결과 화면: 3종 감상 낙관 컬렉션 & 1926 초간본 여백 노트
+   ========================================================= */
+.seal-collection-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.seal-collect-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  padding: 13px 10px;
+  border: 1px solid var(--ink-hair);
+  background: rgba(255, 253, 248, 0.65);
+}
+
+.seal-collect-item.is-earned {
+  border-color: rgba(164, 50, 40, 0.45);
+  background: rgba(255, 252, 246, 0.92);
+}
+
+.seal-collect-item.is-unearned {
+  opacity: 0.64;
+  background: rgba(232, 224, 208, 0.35);
+}
+
+.seal-carved-emblem {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  font-family: var(--serif-h);
+  font-size: 16px;
+  font-weight: 700;
+  border: 2px dashed rgba(78, 86, 80, 0.4);
+  color: var(--ink-soft);
+}
+
+.seal-collect-item.is-earned .seal-carved-emblem {
+  border: 2.5px solid var(--seal);
+  color: var(--seal);
+  background: rgba(164, 50, 40, 0.08);
+  transform: rotate(-5deg);
+}
+
+.seal-collect-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.seal-collect-info strong {
+  font-family: var(--serif-h);
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.seal-collect-info span {
+  font-size: 11.5px;
+  line-height: 1.48;
+  color: var(--ink-soft);
+}
+
+.hidden-note-banner,
+.hidden-note-gate {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 13px 14px;
+  border-top: 1px solid var(--ink-line);
+  border-bottom: 1px solid var(--ink-line);
+  background: rgba(255, 253, 248, 0.55);
+}
+
+.hidden-note-banner.is-unlocked,
+.hidden-note-gate.is-unlocked {
+  border-top-color: rgba(164, 50, 40, 0.45);
+  border-bottom-color: rgba(164, 50, 40, 0.45);
+  background: rgba(249, 243, 232, 0.92);
+}
+
+.hidden-note-banner {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.hidden-note-banner-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.hidden-note-kicker {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--seal);
+}
+
+.hidden-note-banner.is-locked .hidden-note-kicker {
+  color: var(--jade);
+}
+
+.hidden-note-banner-copy strong,
+.hidden-note-gate-head strong {
+  font-family: var(--serif-h);
+  font-size: 14.5px;
+  color: var(--ink);
+}
+
+.hidden-note-banner-copy p,
+.hidden-note-gate-head p {
+  margin: 2px 0 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+.hidden-note-gate-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+/* 1926 초간본 여백 노트 모달 본문 */
+.hidden-note-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 12px 0;
+  border-top: 1px solid var(--ink-hair);
+  border-bottom: 1px solid var(--ink-hair);
+}
+
+.hidden-note-article h3 {
+  margin: 0 0 5px;
+  font-family: var(--serif-h);
+  font-size: 15px;
+  color: var(--seal);
+}
+
+.hidden-note-article p {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: 14px;
+  line-height: 1.78;
+  color: var(--ink);
+}
+
+.hidden-note-quote {
+  margin: 0;
+  padding: 12px 10px;
+  text-align: center;
+  font-family: var(--serif-h);
+  font-size: 14.5px;
+  line-height: 1.65;
+  color: var(--ink);
+  border-top: 1px dashed var(--ink-line);
+  border-bottom: 1px dashed var(--ink-line);
 }
 
 .png-preview-frame {
@@ -1828,6 +2233,43 @@ input:focus-visible {
     grid-template-columns: 1fr;
   }
 
+  .seal-collection-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .seal-collect-item {
+    flex-direction: row;
+    text-align: left;
+    gap: 12px;
+    padding: 10px 12px;
+  }
+
+  .hidden-note-banner {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .resonance-burst {
+    left: 50%;
+    top: 32%;
+  }
+
+  .resonance-floater {
+    max-width: calc(100vw - 24px);
+    padding: 9px 12px;
+  }
+
+  .resonance-floater-text small {
+    white-space: normal;
+  }
+
+  .seal-achievement-toast {
+    top: calc(108px + env(safe-area-inset-top, 0px));
+    left: 12px;
+    right: 12px;
+    width: auto;
+  }
+
   .obs-ripple-pin {
     top: 32% !important;
   }
@@ -1882,7 +2324,11 @@ input:focus-visible {
 @media (prefers-reduced-motion: reduce) {
   *,
   .willow-vignette,
-  .obs-ripple-ring {
+  .obs-ripple-ring,
+  .gold-ripple,
+  .gold-mote,
+  .resonance-floater,
+  .seal-achievement-toast {
     transition-duration: 0.01ms !important;
     animation: none !important;
   }

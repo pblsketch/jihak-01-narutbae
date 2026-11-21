@@ -1,4 +1,4 @@
-import { ContrastSide, LensId, ToneMode } from '../types/game';
+import { AchievementSealId, ContrastSide, LensId, ToneMode } from '../types/game';
 
 export interface StanzaText {
   id: 'stanza1' | 'stanza2' | 'stanza3' | 'stanza4' | 'stanza5';
@@ -418,3 +418,64 @@ export const DEBRIEFING_QUESTIONS = [
     guide: '교실 패들릿이나 학급 게시판에 PNG 카드를 올려 서로 감상 댓글을 달아 보세요.',
   },
 ];
+
+export interface AchievementSeal {
+  id: AchievementSealId;
+  title: string;
+  sealChars: string;
+  condition: string;
+  flavor: string;
+}
+
+/**
+ * 비등급 영광의 보상 — 3종 전통 감상 낙관 컬렉션
+ * (시험 점수나 등급이 아닌, 감상의 깊이를 기리는 전통 전각 낙관)
+ */
+export const ACHIEVEMENT_SEALS: AchievementSeal[] = [
+  {
+    id: 'quiet-ferryman',
+    title: '고요한 사공',
+    sealChars: '沙工',
+    condition: '1~5연 헌신의 결 4단계 완주',
+    flavor: '흙발과 여울, 밤낮의 눈비를 피하지 않고 끝내 나루를 지켜 낸 독자',
+  },
+  {
+    id: 'three-gaze-reader',
+    title: '세 시선의 독자',
+    sealChars: '三鏡',
+    condition: '연인 · 1926 조국 · 불교 3중 시선 모두 탐구',
+    flavor: '단일 정답에 가두지 않고 상징의 다의성을 세 겹의 빛으로 읽어 낸 독자',
+  },
+  {
+    id: 'complete-waiting',
+    title: '온전한 기다림',
+    sealChars: '五觀',
+    condition: '나루터 세밀 관찰 5/5 전부 발견',
+    flavor: '평저선의 나무 결부터 마지막 마침표 하나까지 시의 여백을 모두 살핀 독자',
+  },
+];
+
+/**
+ * 접근의 보상 — 나루터 관찰 포인트 5/5 전부 발견 시 해금되는 히든 원문 감상 해설
+ */
+export const HIDDEN_MARGIN_NOTE_1926 = {
+  kicker: '1926년 회동서관 초간본 · 해금된 여백 노트',
+  title: '『님의 침묵』 초간본 여백에 남은 「나룻배와 행인」의 자리',
+  subtitle: '관찰 5/5를 모두 마친 독자에게만 열리는 심화 원문 감상 해설',
+  sections: [
+    {
+      heading: '1. 백담사의 여름밤에서 1926년 초간본까지',
+      body: '만해 한용운은 1925년 강원도 설악산 백담사에서 88편의 시를 탈고해 이듬해인 1926년 5월 20일 경성 회동서관에서 『님의 침묵』 초간본을 펴냈습니다. 「나룻배와 행인」은 시집의 중반부에 자리하며, 이별의 슬픔을 넘어 ‘스스로 낡아가며 기다리는 능동적 헌신’으로 시집 전체의 정서를 한 층 깊게 끌어올립니다.',
+    },
+    {
+      heading: '2. 활판 인쇄의 여백 — 1연의 열림과 5연의 마침표(.)',
+      body: '1연의 “나는 나룻배 / 당신은 행인”에는 마침표를 찍지 않아 관계가 막 시작되는 열린 호흡을 남겼고, 2~4연의 여울과 눈비, “그러나”의 전환을 지나 돌아온 5연 “나는 나룻배 / 당신은 행인.”에는 비로소 마침표를 찍어 두었습니다. 같은 두 행이지만 세월의 결을 건넌 뒤 찍힌 작은 점 하나가 수미상관의 완결성과 묵직한 여운을 완성합니다.',
+    },
+    {
+      heading: '3. 한 척의 평저선에 겹쳐진 세 세계',
+      body: '화려한 누선이 아닌 바닥 평평한 소박한 강변 평저선은 얕은 여울과 진흙 기슭 어디에나 몸을 낮춰 닿을 수 있습니다. 바로 그 ‘낮춤’ 덕분에 이 작은 배는 연인을 향한 무조건적 사랑이자, 1926년 어두운 시대에 광복을 믿는 민족의 의지이며, 고통의 바다(고해)를 건네는 불교의 반야용선(제도·보시)으로까지 무한히 확장됩니다.',
+    },
+  ],
+  closingQuote: '“기다림은 멈춰 서 있음이 아니라, 날마다 낡아가면서도 자리를 지키는 가장 단단한 사랑의 형식이다.”',
+};
+

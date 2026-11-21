@@ -422,6 +422,8 @@ export const FerryDiorama: React.FC<FerryDioramaProps> = ({
     const targetShallow = new THREE.Color('#6a8b94');
     const targetSun = new THREE.Color('#f0d8a8');
     const targetBgTint = new THREE.Color('#e5e8e1');
+    let lastPulseSeen = visualRef.current.resonancePulse;
+    let pulseBoost = 0;
     const clock = new THREE.Clock();
     let rafId = 0;
 
@@ -440,6 +442,15 @@ export const FerryDiorama: React.FC<FerryDioramaProps> = ({
       const dt = Math.min(clock.getDelta(), 0.05);
       const t = clock.getElapsedTime();
       const v = visualRef.current;
+
+      // 0) 시어 공명 펄스 감지 → 3D 수면 금빛 윤슬 확장 + 금박 입자 부상
+      if (v.resonancePulse !== lastPulseSeen) {
+        lastPulseSeen = v.resonancePulse;
+        pulseBoost = Math.min(1.0, 0.55 + v.resonanceChain * 0.12);
+      }
+      if (pulseBoost > 0.005) {
+        pulseBoost = Math.max(0, pulseBoost - dt * 0.72);
+      }
 
       // 1) 헌신의 결 0~4에 따른 새 배 ↔ 낡은 배 (원근 흙발 포함) 단계적 크로스페이드
       const weatherSteps = [0.0, 0.42, 0.68, 0.86, 1.0];
@@ -552,7 +563,8 @@ export const FerryDiorama: React.FC<FerryDioramaProps> = ({
       waterUniforms.uSunColor.value.lerp(targetSun, dt * 2.5);
       waterUniforms.uRainStrength.value += (targetRain - waterUniforms.uRainStrength.value) * dt * 2.4;
       waterUniforms.uRapidsStrength.value += (targetRapids - waterUniforms.uRapidsStrength.value) * dt * 2.4;
-      waterUniforms.uSunGlow.value += (targetSunGlow - waterUniforms.uSunGlow.value) * dt * 2.4;
+      const boostedSunGlow = targetSunGlow + pulseBoost * 0.75;
+      waterUniforms.uSunGlow.value += (boostedSunGlow - waterUniforms.uSunGlow.value) * dt * 3.2;
 
       // 3) 물결 진폭·속도 & 배 부력 물리
       let waveAmp = 0.05;
@@ -615,14 +627,18 @@ export const FerryDiorama: React.FC<FerryDioramaProps> = ({
         passerbyBack.mesh.position.z += (targetBackZ - passerbyBack.mesh.position.z) * dt * 1.5;
       }
 
-      // 5) 눈비·여명 파티클
-      const targetParticleOp =
+      // 5) 눈비·여명·시어 공명 금박 입자
+      const baseParticleOp =
         v.weather === 'snowRain' ? 0.72 : v.weather === 'wind' ? 0.24 : v.dawnReveal > 0.5 ? 0.32 : 0.0;
-      pMat.opacity += (targetParticleOp - pMat.opacity) * dt * 2.5;
-      pMat.color.set(v.dawnReveal > 0.5 && v.weather !== 'snowRain' ? '#f5dca4' : '#f2f5f2');
+      const targetParticleOp = Math.min(0.85, baseParticleOp + pulseBoost * 0.52);
+      pMat.opacity += (targetParticleOp - pMat.opacity) * dt * 3.0;
+      const isGoldMotes = (pulseBoost > 0.12 || v.dawnReveal > 0.5) && v.weather !== 'snowRain';
+      pMat.color.set(isGoldMotes ? '#f5d996' : '#f2f5f2');
+      pMat.size = isGoldMotes ? 0.19 : 0.15;
       if (pMat.opacity > 0.02 && !prefersReducedMotion) {
         const arr = pGeo.attributes.position.array as Float32Array;
-        const fallSpeed = v.weather === 'snowRain' ? 2.5 : v.dawnReveal > 0.5 ? -0.35 : 0.7;
+        const fallSpeed =
+          v.weather === 'snowRain' ? 2.5 : isGoldMotes ? -0.55 - pulseBoost * 0.6 : 0.7;
         for (let i = 0; i < particleCount; i++) {
           arr[i * 3] -= dt * (v.weather === 'snowRain' ? 1.15 : 0.25);
           arr[i * 3 + 1] -= dt * fallSpeed;

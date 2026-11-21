@@ -9,12 +9,29 @@ import { TripleLensView } from './components/TripleLensView';
 import { MetaphorCardEditor } from './components/MetaphorCardEditor';
 import { ResultDebriefView } from './components/ResultDebriefView';
 import { TeacherDrawer } from './components/TeacherDrawer';
-import { ObservationModal, PoemModal } from './components/Modals';
+import { HiddenNoteModal, ObservationModal, PoemModal } from './components/Modals';
 import { NarrationButton } from './components/NarrationButton';
-import { OBSERVATION_NOTES, ObservationNote, POEM_STANZAS } from './data/poemData';
+import { ResonanceOverlay } from './components/ResonanceOverlay';
+import {
+  ACHIEVEMENT_SEALS,
+  AchievementSeal,
+  OBSERVATION_NOTES,
+  ObservationNote,
+  POEM_STANZAS,
+  SYMBOLIC_LENSES,
+} from './data/poemData';
 import { loadProgress, resetProgress, saveProgress } from './storage/progressStorage';
 import { soundEngine } from './audio/soundEngine';
-import { ContrastSide, GameProgress, LensId, SceneId, SceneVisualState, ToneMode } from './types/game';
+import {
+  AchievementSealId,
+  ContrastSide,
+  GameProgress,
+  LensId,
+  ResonanceEvent,
+  SceneId,
+  SceneVisualState,
+  ToneMode,
+} from './types/game';
 
 export const App: React.FC = () => {
   const [progress, setProgress] = useState<GameProgress>(() => loadProgress());
@@ -22,8 +39,16 @@ export const App: React.FC = () => {
   const [teacherOpen, setTeacherOpen] = useState(false);
   const [poemOpen, setPoemOpen] = useState(false);
   const [obsOpen, setObsOpen] = useState(false);
+  const [hiddenNoteOpen, setHiddenNoteOpen] = useState(false);
   const [focusedObs, setFocusedObs] = useState<ObservationNote | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+
+  // 감각적 피드백 & 시어 공명 체인 상태
+  const [resonanceChain, setResonanceChain] = useState(0);
+  const [resonancePulse, setResonancePulse] = useState(0);
+  const [resonanceEvent, setResonanceEvent] = useState<ResonanceEvent | null>(null);
+  const [sealQueue, setSealQueue] = useState<AchievementSeal[]>([]);
+  const [activeSealToast, setActiveSealToast] = useState<AchievementSeal | null>(null);
 
   const [stanza1Match, setStanza1Match] = useState<{ na: boolean; dangsin: boolean }>({
     na: false,
@@ -48,11 +73,61 @@ export const App: React.FC = () => {
   const [activeLens, setActiveLens] = useState<LensId>('lover');
 
   const logoTapsRef = useRef<number[]>([]);
+  const resonanceIdRef = useRef(0);
+  const resonanceClearRef = useRef<number | null>(null);
+  const chainRef = useRef(0);
 
   useEffect(() => {
     saveProgress(progress);
     soundEngine.setMuted(progress.muted);
   }, [progress]);
+
+  // 3종 감상 낙관 업적 자동 판정 및 실시간 토스트 큐 등록
+  useEffect(() => {
+    const candidates: AchievementSealId[] = [];
+    if (progress.grainLevel >= 4 && progress.stanzaCompleted.stanza5) {
+      candidates.push('quiet-ferryman');
+    }
+    if (progress.lensesViewed.length >= SYMBOLIC_LENSES.length) {
+      candidates.push('three-gaze-reader');
+    }
+    if (progress.observationsFound.length >= OBSERVATION_NOTES.length) {
+      candidates.push('complete-waiting');
+    }
+
+    const newlyEarned = candidates.filter((id) => !progress.unlockedSeals.includes(id));
+    if (newlyEarned.length > 0) {
+      setProgress((prev) => ({
+        ...prev,
+        unlockedSeals: Array.from(new Set([...prev.unlockedSeals, ...newlyEarned])),
+      }));
+      const sealsToShow = newlyEarned
+        .map((id) => ACHIEVEMENT_SEALS.find((s) => s.id === id))
+        .filter((s): s is AchievementSeal => Boolean(s));
+      if (sealsToShow.length > 0) {
+        setSealQueue((prev) => [...prev, ...sealsToShow]);
+      }
+    }
+  }, [
+    progress.grainLevel,
+    progress.stanzaCompleted.stanza5,
+    progress.lensesViewed.length,
+    progress.observationsFound.length,
+    progress.unlockedSeals,
+  ]);
+
+  // 낙관 획득 토스트 순차 표시
+  useEffect(() => {
+    if (activeSealToast || sealQueue.length === 0) return;
+    const [next, ...rest] = sealQueue;
+    setActiveSealToast(next);
+    setSealQueue(rest);
+    soundEngine.playSealAchievement();
+    const timer = window.setTimeout(() => {
+      setActiveSealToast(null);
+    }, 3400);
+    return () => window.clearTimeout(timer);
+  }, [activeSealToast, sealQueue]);
 
   const showToast = useCallback((msg: string) => {
     setToast(msg);
@@ -60,6 +135,31 @@ export const App: React.FC = () => {
       setToast((prev) => (prev === msg ? null : prev));
     }, 2600);
   }, []);
+
+  /**
+   * 감각적 피드백: 수묵 금빛 파문 + 시어의 울림 플로팅 배지 + 공명 체인 + 가야금 화음
+   */
+  const triggerResonance = useCallback(
+    (label: string, detail?: string, tone: 'gold' | 'seal' | 'jade' = 'gold') => {
+      const nextChain = chainRef.current + 1;
+      chainRef.current = nextChain;
+      resonanceIdRef.current += 1;
+      const eventId = resonanceIdRef.current;
+
+      setResonanceChain(nextChain);
+      setResonancePulse((p) => p + 1);
+      setResonanceEvent({ id: eventId, label, detail, chain: nextChain, tone });
+      soundEngine.playResonanceChord(nextChain);
+
+      if (resonanceClearRef.current !== null) {
+        window.clearTimeout(resonanceClearRef.current);
+      }
+      resonanceClearRef.current = window.setTimeout(() => {
+        setResonanceEvent((prev) => (prev?.id === eventId ? null : prev));
+      }, 2200);
+    },
+    [],
+  );
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -128,18 +228,29 @@ export const App: React.FC = () => {
     }
   };
 
-  const handleDiscoverObservation = useCallback((obs: ObservationNote) => {
-    soundEngine.playSoftTap();
-    setFocusedObs(obs);
-    setObsOpen(true);
-    setProgress((prev) => {
-      if (prev.observationsFound.includes(obs.id)) return prev;
-      return {
-        ...prev,
-        observationsFound: [...prev.observationsFound, obs.id],
-      };
-    });
-  }, []);
+  const handleDiscoverObservation = useCallback(
+    (obs: ObservationNote) => {
+      setFocusedObs(obs);
+      setObsOpen(true);
+      const isNew = !progress.observationsFound.includes(obs.id);
+      if (isNew) {
+        const nextCount = progress.observationsFound.length + 1;
+        setProgress((prev) =>
+          prev.observationsFound.includes(obs.id)
+            ? prev
+            : { ...prev, observationsFound: [...prev.observationsFound, obs.id] },
+        );
+        triggerResonance(
+          `세밀 관찰 발견 · ${nextCount}/5`,
+          obs.title,
+          nextCount === OBSERVATION_NOTES.length ? 'seal' : 'gold',
+        );
+      } else {
+        soundEngine.playSoftTap();
+      }
+    },
+    [progress.observationsFound, triggerResonance],
+  );
 
   const handlePlaceContrast = useCallback((itemId: string, side: ContrastSide) => {
     setProgress((prev) => ({
@@ -160,6 +271,11 @@ export const App: React.FC = () => {
     setS5Restore({ line1: '', line2: '', period: false });
     setS5Done(false);
     setTonePreview(null);
+    chainRef.current = 0;
+    setResonanceChain(0);
+    setResonanceEvent(null);
+    setSealQueue([]);
+    setActiveSealToast(null);
     showToast('나루터의 시간을 처음으로 되돌렸습니다.');
   }, [showToast]);
 
@@ -216,6 +332,8 @@ export const App: React.FC = () => {
       activeLens: sc === 'lenses' ? activeLens : null,
       boatTilt,
       passerbyState,
+      resonancePulse,
+      resonanceChain,
     };
   }, [
     progress.currentScene,
@@ -230,6 +348,8 @@ export const App: React.FC = () => {
     isHolding,
     activeLens,
     boatTilt,
+    resonancePulse,
+    resonanceChain,
   ]);
 
   useEffect(() => {
@@ -243,13 +363,13 @@ export const App: React.FC = () => {
     const okLine1 = s5Restore.line1 === '나는 나룻배';
     const okLine2 = s5Restore.line2 === '당신은 행인';
     if (okLine1 && okLine2 && s5Restore.period) {
-      soundEngine.playGrainUnlock();
       setS5Done(true);
       setS5Feedback(null);
       setProgress((prev) => ({
         ...prev,
         stanzaCompleted: { ...prev.stanzaCompleted, stanza5: true },
       }));
+      triggerResonance('수미상관 완성 · 마침표(.)', '1연과 5연이 세월의 결로 닫혔습니다', 'seal');
       return;
     }
     soundEngine.playSoftTap();
@@ -268,6 +388,9 @@ export const App: React.FC = () => {
         onDiscoverObservation={handleDiscoverObservation}
         showAllPins={teacherMode && progress.currentScene === 'stanza5'}
       />
+
+      {/* 감각적 피드백(금빛 파문·시어의 울림) + 낙관 업적 실시간 토스트 */}
+      <ResonanceOverlay event={resonanceEvent} sealToast={activeSealToast} />
 
       <TopHud
         currentScene={progress.currentScene}
@@ -291,7 +414,7 @@ export const App: React.FC = () => {
       ) : null}
 
       <main className={`stage-layer ${progress.currentScene === 'result' ? 'is-wide' : ''}`}>
-        {/* 0. 풀스크린 서정 시네마틱 타이틀 (답답한 흰 모달 박스 제거) */}
+        {/* 0. 풀스크린 서정 시네마틱 타이틀 */}
         {progress.currentScene === 'title' ? (
           <section className="title-stage">
             <div className="title-hero-block">
@@ -361,7 +484,7 @@ export const App: React.FC = () => {
 
               <h2 className="folio-title">낡아감은 실패가 아니라, 헌신의 결입니다</h2>
               <p className="folio-guide">
-                이 나루터에는 체력바도 게임오버도 없습니다. 행인의 흙발과 급한 여울, 밤낮의 눈비를 받아 안을수록 배의 나무판이 낡아가며 시의 결이 완성됩니다.
+                이 나루터에는 체력바도 시험 점수도 없습니다. 행인의 흙발과 급한 여울, 밤낮의 눈비를 받아 안을수록 배의 나무판이 낡아가며 시의 결이 완성됩니다.
               </p>
 
               <div className="legend-list">
@@ -430,8 +553,13 @@ export const App: React.FC = () => {
                   type="button"
                   className={`folio-choice ${stanza1Match.na ? 'is-selected-self' : ''}`}
                   onClick={() => {
-                    soundEngine.playSoftTap();
+                    const willComplete = !stanza1Match.na && stanza1Match.dangsin;
                     setStanza1Match((prev) => ({ ...prev, na: true }));
+                    if (willComplete) {
+                      triggerResonance('은유의 울림 포착', '나 = 나룻배 · 당신 = 행인', 'gold');
+                    } else {
+                      soundEngine.playSoftTap();
+                    }
                   }}
                 >
                   {stanza1Match.na ? '✓ ' : ''}나 = 나룻배 (기다리며 건네는 존재)
@@ -440,8 +568,13 @@ export const App: React.FC = () => {
                   type="button"
                   className={`folio-choice ${stanza1Match.dangsin ? 'is-selected-you' : ''}`}
                   onClick={() => {
-                    soundEngine.playSoftTap();
+                    const willComplete = stanza1Match.na && !stanza1Match.dangsin;
                     setStanza1Match((prev) => ({ ...prev, dangsin: true }));
+                    if (willComplete) {
+                      triggerResonance('은유의 울림 포착', '나 = 나룻배 · 당신 = 행인', 'gold');
+                    } else {
+                      soundEngine.playSoftTap();
+                    }
                   }}
                 >
                   {stanza1Match.dangsin ? '✓ ' : ''}당신 = 행인 (강을 건너가는 길손)
@@ -495,10 +628,9 @@ export const App: React.FC = () => {
                   type="button"
                   className="ink-btn full-width"
                   onClick={() => {
-                    soundEngine.playGrainUnlock();
                     setProgress((prev) => ({ ...prev, grainLevel: Math.max(prev.grainLevel, 1) }));
                     setS2Step('hold');
-                    showToast('헌신의 결 1/4 — 흙발 자국이 배 바닥에 새겨졌습니다.');
+                    triggerResonance('헌신의 결 +1', '흙발 자국이 배 바닥에 새겨졌습니다', 'gold');
                   }}
                 >
                   <Footprints size={17} />
@@ -532,10 +664,9 @@ export const App: React.FC = () => {
                   }}
                   onReleaseWobble={triggerWobble}
                   onComplete={() => {
-                    soundEngine.playGrainUnlock();
                     setProgress((prev) => ({ ...prev, grainLevel: Math.max(prev.grainLevel, 2) }));
                     setS2Step('tone');
-                    showToast('헌신의 결 2/4 — 급한 여울을 안고 건너 나무판이 젖어 들었습니다.');
+                    triggerResonance('헌신의 결 +1', '급한 여울을 안고 건넜습니다', 'jade');
                   }}
                 />
               </div>
@@ -553,6 +684,7 @@ export const App: React.FC = () => {
                   }));
                   setTonePreview(null);
                   setS2Step('contrast');
+                  triggerResonance('경어체의 울림 포착', '‘-ㅂ니다’에 담긴 무조건적 존경', 'seal');
                 }}
               />
             ) : null}
@@ -568,6 +700,7 @@ export const App: React.FC = () => {
                     stanzaCompleted: { ...prev.stanzaCompleted, stanza2: true },
                   }));
                   setS2Step('done');
+                  triggerResonance('대조의 축 발견', '짓밟음과 안고 건넘의 선명한 대비', 'gold');
                 }}
               />
             ) : null}
@@ -637,10 +770,9 @@ export const App: React.FC = () => {
                   }}
                   onReleaseWobble={triggerWobble}
                   onComplete={() => {
-                    soundEngine.playGrainUnlock();
                     setProgress((prev) => ({ ...prev, grainLevel: Math.max(prev.grainLevel, 3) }));
                     setS3Step('tone');
-                    showToast('헌신의 결 3/4 — 밤낮 눈비에 나무판의 결이 깊어졌습니다.');
+                    triggerResonance('헌신의 결 +1', '밤낮 눈비를 버텨 낸 기다림의 결', 'jade');
                   }}
                 />
               </div>
@@ -658,6 +790,7 @@ export const App: React.FC = () => {
                   }));
                   setTonePreview(null);
                   setS3Step('contrast');
+                  triggerResonance('경어체의 울림 포착', '무정함을 절제해 품은 ‘가십니다그려’', 'seal');
                 }}
               />
             ) : null}
@@ -673,6 +806,7 @@ export const App: React.FC = () => {
                     stanzaCompleted: { ...prev.stanzaCompleted, stanza3: true },
                   }));
                   setS3Step('done');
+                  triggerResonance('대조의 축 발견', '밤낮의 기다림과 돌아보지 않는 떠남', 'gold');
                 }}
               />
             ) : null}
@@ -729,9 +863,8 @@ export const App: React.FC = () => {
                   type="button"
                   className="turn-word-btn"
                   onClick={() => {
-                    soundEngine.playGrainUnlock();
                     setS4Step('tone');
-                    showToast('‘그러나’ — 시상이 체념에서 확신과 희망으로 전환됩니다.');
+                    triggerResonance('시상의 전환 · 그러나', '체념에서 확신과 희망의 새벽으로', 'gold');
                   }}
                 >
                   <Sparkles size={19} />
@@ -753,7 +886,7 @@ export const App: React.FC = () => {
                   }));
                   setTonePreview(null);
                   setS4Step('contrast');
-                  showToast('헌신의 결 4/4 완성 — 날마다 날마다 낡아가는 세월의 빛이 스몄습니다.');
+                  triggerResonance('헌신의 결 4/4 완성', '거자필반(去者必返) · ‘알아요’의 믿음', 'seal');
                 }}
               />
             ) : null}
@@ -770,6 +903,7 @@ export const App: React.FC = () => {
                     grainLevel: 4,
                   }));
                   setS4Step('done');
+                  triggerResonance('대조의 축 완성', '날마다 낡아감으로 피어나는 믿음', 'gold');
                 }}
               />
             ) : null}
@@ -941,17 +1075,27 @@ export const App: React.FC = () => {
               selectedLens={progress.selectedLens}
               onSelectActiveLens={(lens) => {
                 setActiveLens(lens);
-                setProgress((prev) => ({
-                  ...prev,
-                  lensesViewed: prev.lensesViewed.includes(lens)
-                    ? prev.lensesViewed
-                    : [...prev.lensesViewed, lens],
-                }));
+                const isNew = !progress.lensesViewed.includes(lens);
+                if (isNew) {
+                  const lensInfo = SYMBOLIC_LENSES.find((l) => l.id === lens);
+                  setProgress((prev) => ({
+                    ...prev,
+                    lensesViewed: prev.lensesViewed.includes(lens)
+                      ? prev.lensesViewed
+                      : [...prev.lensesViewed, lens],
+                  }));
+                  triggerResonance(
+                    `${lensInfo?.title ?? '상징 시선'} 겹쳐 읽기`,
+                    lensInfo?.subtitle,
+                    'jade',
+                  );
+                }
               }}
               onCommitPersonalLens={(lens) => {
                 setActiveLens(lens);
                 setProgress((prev) => ({ ...prev, selectedLens: lens }));
-                showToast('결과 카드에 담을 내 시선 인장을 선택했습니다.');
+                const lensInfo = SYMBOLIC_LENSES.find((l) => l.id === lens);
+                triggerResonance('내 시선 인장 선택', lensInfo?.title, 'seal');
               }}
               onProceed={() => goScene('metaphor')}
             />
@@ -978,6 +1122,7 @@ export const App: React.FC = () => {
               setFocusedObs(null);
               setObsOpen(true);
             }}
+            onOpenHiddenNote={() => setHiddenNoteOpen(true)}
             onRestart={handleRestart}
           />
         ) : null}
@@ -989,7 +1134,9 @@ export const App: React.FC = () => {
         foundIds={progress.observationsFound}
         focusedNote={focusedObs}
         onClose={() => setObsOpen(false)}
+        onOpenHiddenNote={() => setHiddenNoteOpen(true)}
       />
+      <HiddenNoteModal open={hiddenNoteOpen} onClose={() => setHiddenNoteOpen(false)} />
       <TeacherDrawer
         open={teacherOpen}
         currentScene={progress.currentScene}
@@ -1002,7 +1149,7 @@ export const App: React.FC = () => {
             ...prev,
             observationsFound: OBSERVATION_NOTES.map((n) => n.id),
           }));
-          showToast('1926 세밀 관찰 5종이 모두 열렸습니다.');
+          triggerResonance('세밀 관찰 5/5 완료', '1926 초간본 여백 노트가 해금되었습니다', 'seal');
         }}
         onResetAll={() => {
           handleRestart();

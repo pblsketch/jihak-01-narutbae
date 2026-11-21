@@ -1,6 +1,11 @@
 import React from 'react';
-import { X, Lock } from 'lucide-react';
-import { OBSERVATION_NOTES, ObservationNote, POEM_STANZAS } from '../data/poemData';
+import { X, Lock, Sparkles } from 'lucide-react';
+import {
+  HIDDEN_MARGIN_NOTE_1926,
+  OBSERVATION_NOTES,
+  ObservationNote,
+  POEM_STANZAS,
+} from '../data/poemData';
 import { NarrationButton } from './NarrationButton';
 
 interface PoemModalProps {
@@ -53,6 +58,7 @@ interface ObservationModalProps {
   foundIds: string[];
   focusedNote: ObservationNote | null;
   onClose: () => void;
+  onOpenHiddenNote?: () => void;
 }
 
 export const ObservationModal: React.FC<ObservationModalProps> = ({
@@ -60,8 +66,11 @@ export const ObservationModal: React.FC<ObservationModalProps> = ({
   foundIds,
   focusedNote,
   onClose,
+  onOpenHiddenNote,
 }) => {
   if (!open) return null;
+  const allFound = foundIds.length >= OBSERVATION_NOTES.length;
+
   return (
     <div className="modal-backdrop" role="dialog" aria-label="1926 나루터 세밀 관찰 도감" onClick={onClose}>
       <div className="hanji-modal" onClick={(e) => e.stopPropagation()}>
@@ -106,6 +115,81 @@ export const ObservationModal: React.FC<ObservationModalProps> = ({
             );
           })}
         </div>
+
+        {/* 접근의 보상: 5/5 관찰 완료 시 해금되는 1926년 초간본 여백 노트 */}
+        <div className={`hidden-note-gate ${allFound ? 'is-unlocked' : 'is-locked'}`}>
+          <div className="hidden-note-gate-head">
+            <span className={`seal-mini ${allFound ? 'is-original' : 'is-note'}`}>
+              {allFound ? '秘' : '鎖'}
+            </span>
+            <div>
+              <strong>1926년 『님의 침묵』 초간본 여백 노트</strong>
+              <p>
+                {allFound
+                  ? '나루터 관찰 5/5를 모두 마쳐 히든 원문 감상 해설이 해금되었습니다.'
+                  : `나루터 관찰 포인트 5곳을 모두 발견하면 해금됩니다. (현재 ${foundIds.length}/5)`}
+              </p>
+            </div>
+          </div>
+          {allFound && onOpenHiddenNote ? (
+            <button
+              type="button"
+              className="ink-btn full-width"
+              onClick={() => {
+                onClose();
+                onOpenHiddenNote();
+              }}
+            >
+              <Sparkles size={16} />
+              <span>1926 초간본 여백 노트 펼쳐 읽기</span>
+            </button>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+interface HiddenNoteModalProps {
+  open: boolean;
+  onClose: () => void;
+}
+
+export const HiddenNoteModal: React.FC<HiddenNoteModalProps> = ({ open, onClose }) => {
+  if (!open) return null;
+  return (
+    <div
+      className="modal-backdrop"
+      role="dialog"
+      aria-label="1926년 님의 침묵 초간본 여백 노트"
+      onClick={onClose}
+    >
+      <div className="hanji-modal hidden-note-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-head">
+          <div>
+            <div className="folio-kicker">
+              <span className="seal-mini is-original">秘</span>
+              <span>{HIDDEN_MARGIN_NOTE_1926.kicker}</span>
+            </div>
+            <h2>{HIDDEN_MARGIN_NOTE_1926.title}</h2>
+          </div>
+          <button type="button" className="icon-close-btn" onClick={onClose} aria-label="닫기">
+            <X size={20} />
+          </button>
+        </div>
+
+        <p className="poem-source-note">{HIDDEN_MARGIN_NOTE_1926.subtitle}</p>
+
+        <div className="hidden-note-sections">
+          {HIDDEN_MARGIN_NOTE_1926.sections.map((sec) => (
+            <article key={sec.heading} className="hidden-note-article">
+              <h3>{sec.heading}</h3>
+              <p>{sec.body}</p>
+            </article>
+          ))}
+        </div>
+
+        <p className="hidden-note-quote">{HIDDEN_MARGIN_NOTE_1926.closingQuote}</p>
       </div>
     </div>
   );

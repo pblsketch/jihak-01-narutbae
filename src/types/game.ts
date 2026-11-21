@@ -16,6 +16,16 @@ export type LensId = 'lover' | 'nation' | 'buddhism';
 
 export type ContrastSide = 'self' | 'you';
 
+export type AchievementSealId = 'quiet-ferryman' | 'three-gaze-reader' | 'complete-waiting';
+
+export interface ResonanceEvent {
+  id: number;
+  label: string;
+  detail?: string;
+  chain: number;
+  tone?: 'gold' | 'seal' | 'jade';
+}
+
 export interface MetaphorCardData {
   target: string;
   selfMetaphor: string;
@@ -34,6 +44,7 @@ export interface GameProgress {
   observationsFound: string[];
   lensesViewed: LensId[];
   selectedLens: LensId | null;
+  unlockedSeals: AchievementSealId[];
   metaphorCard: MetaphorCardData;
   muted: boolean;
   startedAt: string;
@@ -53,4 +64,6 @@ export interface SceneVisualState {
   activeLens: LensId | null;
   boatTilt: number; // -1..1 gentle wobble when hold released
   passerbyState: 'distant' | 'boarding' | 'onboard' | 'departing' | 'gone';
+  resonancePulse: number; // timestamp/counter for golden shimmer surge
+  resonanceChain: number; // consecutive poetic resonance chain count
 }

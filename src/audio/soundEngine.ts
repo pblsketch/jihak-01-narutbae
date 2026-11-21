@@ -264,6 +264,46 @@ class ProceduralSoundEngine {
     window.setTimeout(() => this.playPluck(440.0, 1.1, 0.06, 'triangle'), 190);
   }
 
+  /**
+   * 감각적 피드백: 시어의 울림 & 연속 공명 체인에 반응하는 가야금 5음계 화음
+   */
+  public playResonanceChord(chainLevel = 1): void {
+    if (this.muted) return;
+    const ctx = this.ensureContext();
+    if (!ctx || !this.masterGain) return;
+
+    // 평조 5음계 상행 아르페지오 — 체인이 쌓일수록 음역과 화음이 부드럽게 확장
+    const scale = [293.66, 329.63, 392.0, 440.0, 493.88, 587.33, 659.25];
+    const startIdx = Math.min(3, Math.max(0, chainLevel - 1));
+    const notes = [scale[startIdx], scale[startIdx + 2], scale[Math.min(scale.length - 1, startIdx + 3)]];
+
+    notes.forEach((freq, idx) => {
+      window.setTimeout(() => {
+        if (!this.muted && this.masterGain) {
+          this.playGayageumNote(freq, 1.35 + idx * 0.2, 0.055, this.masterGain);
+        }
+      }, idx * 85);
+    });
+  }
+
+  /**
+   * 영광의 보상: 3종 감상 낙관 획득 시 전각 도장 울림 + 4음 가야금 축복 화음
+   */
+  public playSealAchievement(): void {
+    if (this.muted) return;
+    this.playStamp();
+    const ctx = this.ensureContext();
+    if (!ctx || !this.masterGain) return;
+    const chord = [293.66, 392.0, 440.0, 587.33];
+    chord.forEach((freq, idx) => {
+      window.setTimeout(() => {
+        if (!this.muted && this.masterGain) {
+          this.playGayageumNote(freq, 1.8, 0.06, this.masterGain);
+        }
+      }, 110 + idx * 95);
+    });
+  }
+
   public playToneSwitch(mode: ToneMode): void {
     if (mode === 'resentment') {
       this.playPluck(220, 0.45, 0.065, 'sawtooth');

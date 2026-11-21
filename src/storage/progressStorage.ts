@@ -24,6 +24,7 @@ export function createInitialProgress(): GameProgress {
     observationsFound: [],
     lensesViewed: [],
     selectedLens: null,
+    unlockedSeals: [],
     metaphorCard: {
       target: '',
       selfMetaphor: '',
@@ -52,6 +53,7 @@ export function loadProgress(): GameProgress {
       contrastPlaced: { ...initial.contrastPlaced, ...(parsed.contrastPlaced ?? {}) },
       observationsFound: Array.isArray(parsed.observationsFound) ? parsed.observationsFound : [],
       lensesViewed: Array.isArray(parsed.lensesViewed) ? parsed.lensesViewed : [],
+      unlockedSeals: Array.isArray(parsed.unlockedSeals) ? parsed.unlockedSeals : [],
       metaphorCard: { ...initial.metaphorCard, ...(parsed.metaphorCard ?? {}) },
     };
   } catch {
