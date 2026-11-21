@@ -128,7 +128,9 @@ export const HoldInteraction: React.FC<HoldInteractionProps> = ({
       <button
         type="button"
         className={`hold-btn ${holding ? 'is-holding' : ''}`}
+        onContextMenu={(e) => e.preventDefault()}
         onPointerDown={(e) => {
+          e.preventDefault();
           e.currentTarget.setPointerCapture?.(e.pointerId);
           startHold();
         }}

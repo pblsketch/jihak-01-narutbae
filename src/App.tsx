@@ -42,6 +42,7 @@ export const App: React.FC = () => {
   const [hiddenNoteOpen, setHiddenNoteOpen] = useState(false);
   const [focusedObs, setFocusedObs] = useState<ObservationNote | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // 감각적 피드백 & 시어 공명 체인 상태
   const [resonanceChain, setResonanceChain] = useState(0);
@@ -75,6 +76,7 @@ export const App: React.FC = () => {
   const logoTapsRef = useRef<number[]>([]);
   const resonanceIdRef = useRef(0);
   const resonanceClearRef = useRef<number | null>(null);
+  const toastTimerRef = useRef<number | null>(null);
   const chainRef = useRef(0);
 
   useEffect(() => {
@@ -129,12 +131,89 @@ export const App: React.FC = () => {
     return () => window.clearTimeout(timer);
   }, [activeSealToast, sealQueue]);
 
-  const showToast = useCallback((msg: string) => {
+  const showToast = useCallback((msg: string, durationMs = 2600) => {
     setToast(msg);
-    window.setTimeout(() => {
+    if (toastTimerRef.current !== null) {
+      window.clearTimeout(toastTimerRef.current);
+    }
+    toastTimerRef.current = window.setTimeout(() => {
       setToast((prev) => (prev === msg ? null : prev));
-    }, 2600);
+    }, durationMs);
   }, []);
+
+  useEffect(() => {
+    type WebkitDoc = Document & {
+      webkitFullscreenElement?: Element | null;
+    };
+    const syncFullscreen = () => {
+      const doc = document as WebkitDoc;
+      setIsFullscreen(Boolean(doc.fullscreenElement || doc.webkitFullscreenElement));
+    };
+    syncFullscreen();
+    document.addEventListener('fullscreenchange', syncFullscreen);
+    document.addEventListener('webkitfullscreenchange', syncFullscreen);
+    return () => {
+      document.removeEventListener('fullscreenchange', syncFullscreen);
+      document.removeEventListener('webkitfullscreenchange', syncFullscreen);
+    };
+  }, []);
+
+  const handleToggleFullscreen = useCallback(async () => {
+    type WebkitDoc = Document & {
+      webkitFullscreenElement?: Element | null;
+      webkitExitFullscreen?: () => Promise<void> | void;
+      webkitFullscreenEnabled?: boolean;
+    };
+    type WebkitEl = HTMLElement & {
+      webkitRequestFullscreen?: () => Promise<void> | void;
+    };
+
+    const doc = document as WebkitDoc;
+    const rootEl = document.documentElement as WebkitEl;
+    const currentlyFullscreen = Boolean(doc.fullscreenElement || doc.webkitFullscreenElement);
+
+    const showIosGuide = () => {
+      showToast(
+        'Safari 하단 공유(□↑) → ‘홈 화면에 추가’로 열면 주소창 없이 전체 화면으로 즐길 수 있습니다.',
+        4400,
+      );
+    };
+
+    if (currentlyFullscreen) {
+      try {
+        if (doc.exitFullscreen) {
+          await doc.exitFullscreen();
+        } else if (doc.webkitExitFullscreen) {
+          await doc.webkitExitFullscreen();
+        }
+      } catch {
+        setIsFullscreen(false);
+      }
+      return;
+    }
+
+    const canRequest =
+      (typeof rootEl.requestFullscreen === 'function' && doc.fullscreenEnabled !== false) ||
+      (typeof rootEl.webkitRequestFullscreen === 'function' &&
+        doc.webkitFullscreenEnabled !== false);
+
+    if (!canRequest) {
+      showIosGuide();
+      return;
+    }
+
+    try {
+      if (typeof rootEl.requestFullscreen === 'function') {
+        await rootEl.requestFullscreen();
+      } else if (typeof rootEl.webkitRequestFullscreen === 'function') {
+        await rootEl.webkitRequestFullscreen();
+      } else {
+        showIosGuide();
+      }
+    } catch {
+      showIosGuide();
+    }
+  }, [showToast]);
 
   /**
    * 감각적 피드백: 수묵 금빛 파문 + 시어의 울림 플로팅 배지 + 공명 체인 + 가야금 화음
@@ -173,11 +252,14 @@ export const App: React.FC = () => {
       } else if (!e.shiftKey && !e.ctrlKey && !e.metaKey && e.key.toLowerCase() === 'm') {
         e.preventDefault();
         setProgress((prev) => ({ ...prev, muted: !prev.muted }));
+      } else if (!e.shiftKey && !e.ctrlKey && !e.metaKey && e.key.toLowerCase() === 'f') {
+        e.preventDefault();
+        void handleToggleFullscreen();
       }
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, []);
+  }, [handleToggleFullscreen]);
 
   const triggerWobble = useCallback(() => {
     setBoatTilt(1);
@@ -397,8 +479,12 @@ export const App: React.FC = () => {
         grainLevel={progress.grainLevel}
         observationsCount={progress.observationsFound.length}
         muted={progress.muted}
+        isFullscreen={isFullscreen}
         teacherMode={teacherMode}
         onToggleMute={() => setProgress((prev) => ({ ...prev, muted: !prev.muted }))}
+        onToggleFullscreen={() => {
+          void handleToggleFullscreen();
+        }}
         onOpenPoem={() => setPoemOpen(true)}
         onOpenObservations={() => {
           setFocusedObs(null);

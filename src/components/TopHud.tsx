@@ -1,5 +1,13 @@
 import React from 'react';
-import { BookOpen, Compass, Volume2, VolumeX, GraduationCap } from 'lucide-react';
+import {
+  BookOpen,
+  Compass,
+  Volume2,
+  VolumeX,
+  GraduationCap,
+  Maximize2,
+  Minimize2,
+} from 'lucide-react';
 import { SceneId } from '../types/game';
 
 interface TopHudProps {
@@ -7,8 +15,10 @@ interface TopHudProps {
   grainLevel: number;
   observationsCount: number;
   muted: boolean;
+  isFullscreen: boolean;
   teacherMode: boolean;
   onToggleMute: () => void;
+  onToggleFullscreen: () => void;
   onOpenPoem: () => void;
   onOpenObservations: () => void;
   onOpenTeacher: () => void;
@@ -67,12 +77,26 @@ export const TopHud: React.FC<TopHudProps> = ({
   grainLevel,
   observationsCount,
   muted,
+  isFullscreen,
   teacherMode,
   onToggleMute,
+  onToggleFullscreen,
   onOpenPoem,
   onOpenObservations,
   onOpenTeacher,
 }) => {
+  const fullscreenButton = (
+    <button
+      type="button"
+      className="hud-circle-btn"
+      onClick={onToggleFullscreen}
+      aria-label={isFullscreen ? '전체 화면 종료' : '전체 화면'}
+      title={isFullscreen ? '전체 화면 종료 (F)' : '전체 화면 (F)'}
+    >
+      {isFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
+    </button>
+  );
+
   if (currentScene === 'title') {
     return (
       <header className="hud-bar hud-minimal">
@@ -84,6 +108,7 @@ export const TopHud: React.FC<TopHudProps> = ({
               <span>교사</span>
             </button>
           ) : null}
+          {fullscreenButton}
           <button
             type="button"
             className="hud-circle-btn"
@@ -153,6 +178,7 @@ export const TopHud: React.FC<TopHudProps> = ({
             <span className="hud-btn-text">교사</span>
           </button>
         ) : null}
+        {fullscreenButton}
         <button
           type="button"
           className="hud-circle-btn"

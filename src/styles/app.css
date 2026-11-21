@@ -31,10 +31,12 @@ body,
   width: 100%;
   height: 100%;
   overflow: hidden;
+  overscroll-behavior: none;
   background: #cfd7d1;
   color: var(--ink);
   font-family: var(--sans);
   -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
   word-break: keep-all;
 }
 
@@ -63,23 +65,38 @@ input:focus-visible {
   width: 100dvw;
   height: 100dvh;
   overflow: hidden;
+  overscroll-behavior: none;
 }
 
 .diorama-root {
   position: fixed;
   inset: 0;
   z-index: 0;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  overscroll-behavior: none;
 }
 
 .diorama-webgl {
   width: 100%;
   height: 100%;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  overscroll-behavior: none;
 }
 
 .diorama-webgl canvas {
   display: block;
   width: 100% !important;
   height: 100% !important;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 
 /* 가장자리 고정 버드나무·갈대 수묵 프레임 (잘린 바닥 경계 없음) */
@@ -137,6 +154,11 @@ input:focus-visible {
   height: 100%;
   overflow: hidden;
   background: linear-gradient(180deg, #cfd7d1 0%, #7d9699 54%, #2c4e5b 100%);
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  overscroll-behavior: none;
 }
 
 .fallback-bg {
@@ -193,6 +215,10 @@ input:focus-visible {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 
 .obs-ripple-ring {
@@ -359,6 +385,9 @@ input:focus-visible {
   font-family: var(--serif);
   font-size: 13px;
   backdrop-filter: blur(5px);
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
   transition: background 0.18s ease, border-color 0.18s ease;
 }
 
@@ -384,7 +413,7 @@ input:focus-visible {
   top: calc(68px + env(safe-area-inset-top, 0px));
   left: 50%;
   transform: translateX(-50%);
-  z-index: 35;
+  z-index: 65;
   max-width: min(92vw, 460px);
   padding: 10px 18px;
   background: rgba(26, 32, 30, 0.88);
@@ -861,6 +890,11 @@ input:focus-visible {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  overscroll-behavior: none;
 }
 
 .hold-river-track {
@@ -918,8 +952,11 @@ input:focus-visible {
   border: 1.5px solid var(--jade);
   background: rgba(255, 253, 248, 0.85);
   color: var(--ink);
+  touch-action: none;
   user-select: none;
   -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  overscroll-behavior: none;
 }
 
 .hold-btn.is-holding {
@@ -2177,6 +2214,24 @@ input:focus-visible {
 
   .hud-bar {
     padding: calc(8px + env(safe-area-inset-top, 0px)) 12px 8px;
+    gap: 6px;
+  }
+
+  .hud-left {
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .hud-actions {
+    gap: 5px;
+    flex-shrink: 0;
+  }
+
+  .hud-seal-btn,
+  .hud-circle-btn {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0;
   }
 
   .toast-banner {
@@ -2277,23 +2332,25 @@ input:focus-visible {
 
 @media (max-height: 460px) and (orientation: landscape) {
   .hud-bar {
-    padding: 5px 12px;
+    padding: calc(5px + env(safe-area-inset-top, 0px)) calc(12px + env(safe-area-inset-right, 0px)) 5px
+      calc(12px + env(safe-area-inset-left, 0px));
   }
 
   .hud-seal-btn,
   .hud-circle-btn {
-    min-height: 38px;
-    min-width: 38px;
+    min-height: 44px;
+    min-width: 44px;
   }
 
   .stage-layer {
-    padding: 48px 12px 8px;
+    padding: calc(56px + env(safe-area-inset-top, 0px)) calc(12px + env(safe-area-inset-right, 0px))
+      calc(8px + env(safe-area-inset-bottom, 0px)) calc(12px + env(safe-area-inset-left, 0px));
   }
 
   .side-sheet,
   .side-sheet.is-lens {
     width: min(376px, 46vw);
-    max-height: calc(100dvh - 56px);
+    max-height: calc(100dvh - 66px);
   }
 
   .folio-card {
